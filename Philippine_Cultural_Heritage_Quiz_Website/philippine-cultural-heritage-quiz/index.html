@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f5a623">
+<title>Philippine Cultural Heritage Quiz</title>
+<style>
+:root{
+  --orange:#f2a51f; --deep-orange:#b84b12; --navy:#071d56;
+  --cream:#f8eee4; --green:#16834b; --green-bg:#e5f5e8;
+  --red:#c62828; --red-bg:#fde8e6;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; color:var(--navy);
+  font-family:Arial,Helvetica,sans-serif;
+  background-color:#f7ebe0;
+  background-image:none;
+  padding:22px 14px 36px;
+}
+.wrap{max-width:760px;margin:0 auto}
+header{text-align:center;margin:0 auto 18px;color:#78300e}
+header h1{font-family:Georgia,serif;font-size:clamp(25px,5vw,38px);margin:4px 0 5px}
+header p{font-weight:700;margin:0;font-size:14px;color:#47220f}
+.progress-wrap{height:9px;background:#f8e4c6;border:1px solid #b95b1d;border-radius:20px;overflow:hidden;margin:14px 0 18px}
+.progress{height:100%;width:0;background:#0b285e;transition:width .25s}
+.card{
+  background:var(--orange);border:3px solid #9f4515;border-radius:13px;
+  box-shadow:0 7px 0 rgba(126,48,8,.22);padding:13px 11px 10px;
+  position:relative;overflow:hidden;
+}
+.card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:repeating-linear-gradient(45deg,#8e3210 0 5px,#c86b1c 5px 10px)}
+.region{font-family:Georgia,serif;font-weight:bold;font-size:clamp(19px,4vw,25px);color:#74300f;margin:0 0 8px;padding:0 4px 7px 10px;border-bottom:1px solid rgba(105,45,10,.55)}
+.question{font-weight:800;line-height:1.3;font-size:16px;margin:0 5px 10px 10px}
+.answers{display:grid;gap:7px;margin-left:10px}
+.answer{
+  width:100%;text-align:left;border:1px solid #b36d45;border-radius:13px;
+  background:var(--cream);color:var(--navy);font-weight:800;font-size:14px;
+  line-height:1.3;padding:10px 12px;cursor:pointer;transition:transform .12s,background .12s;
+}
+.answer:not(:disabled):active{transform:scale(.99)}
+.answer:focus-visible,.next:focus-visible,.restart:focus-visible{outline:3px solid #152f72;outline-offset:2px}
+.answer:disabled{cursor:default;opacity:1}
+.answer.correct{background:#ccebd3;border:2px solid var(--green);color:#075b30}
+.answer.wrong{background:#f8d1cc;border:2px solid var(--red);color:#8e1717}
+.feedback{
+  display:none;margin:15px 0 0;background:var(--green-bg);border:3px solid #16834b;
+  border-radius:13px;padding:12px 13px;color:#075b30;font-family:Georgia,serif;
+  font-weight:bold;line-height:1.35;font-size:16px;box-shadow:0 6px 0 rgba(0,0,0,.08)
+}
+.feedback.wrong{background:var(--red-bg);border-color:var(--red);color:#941b1b}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:17px 2px}
+.counter{font-weight:800;font-size:13px}
+.next,.restart{
+  border:2px solid #71300f;border-radius:10px;background:#fff0dc;color:#71300f;
+  font-weight:900;padding:11px 18px;cursor:pointer;font-size:14px
+}
+.next:disabled{opacity:.45;cursor:not-allowed}
+.screen{display:none}
+.screen.active{display:block}
+.welcome,.result{
+  background:var(--orange);border:3px solid #9f4515;border-radius:14px;
+  box-shadow:0 7px 0 rgba(126,48,8,.22);padding:25px 18px;text-align:center
+}
+.welcome h2,.result h2{font-family:Georgia,serif;color:#74300f;font-size:27px;margin:0 0 12px}
+.welcome p,.result p{font-weight:700;line-height:1.5}
+.start{margin-top:10px}
+.score{font-size:42px;font-weight:900;color:#74300f;margin:8px}
+.small{font-size:13px;color:#4b2a16}
+@media(min-width:600px){body{padding-top:30px}.card{padding:16px 14px 13px}.question{font-size:17px}.answer{font-size:15px;padding:12px 14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Philippine Cultural Heritage Quiz</h1>
+  <p>Test your knowledge of the Philippines' regional heritage</p>
+</header>
+
+<section id="welcome" class="screen welcome active">
+  <h2>Ready to Explore?</h2>
+  <p>Answer all 18 questions about the cultural heritage, traditions, and identity of the Philippine regions.</p>
+  <p class="small">Choose A, B, or C. Feedback and sound will appear after every answer.</p>
+  <button class="next start" id="startBtn">START QUIZ</button>
+</section>
+
+<section id="quiz" class="screen">
+  <div class="progress-wrap"><div class="progress" id="progress"></div></div>
+  <div class="card">
+    <h2 class="region" id="region"></h2>
+    <p class="question" id="question"></p>
+    <div class="answers" id="answers"></div>
+  </div>
+  <div class="feedback" id="feedback" role="status" aria-live="polite"></div>
+  <div class="controls">
+    <span class="counter" id="counter">Question 1 of 18</span>
+    <button class="next" id="nextBtn" disabled> NEXT → </button>
+  </div>
+</section>
+
+<section id="result" class="screen result">
+  <h2 id="resultTitle">Quiz Complete!</h2>
+  <div class="score" id="score">0 / 18</div>
+  <p id="resultMessage"></p>
+  <p id="resultDetail" class="small"></p>
+  <button class="restart" id="restartBtn">TRY AGAIN</button>
+</section>
+</div>
+<script>
+const quizData = [
+{region:"National Capital Region (NCR)",q:"Why is preserving historical sites such as Intramuros important to Filipino identity?",a:["It attracts tourists and increases commercial activities.","It allows future generations to understand the country's history and identity.","It encourages communities to replace old structures with modern buildings."],correct:1,right:"Correct! Preserving historical sites allows future generations to understand our country's history, culture, and identity.",wrong:"Not quite! Historical sites are more than just old buildings. They serve as reminders of our past and help preserve our national identity."},
+{region:"Cordillera Administrative Region (CAR)",q:"The Ifugao Rice Terraces demonstrate the relationship between people and nature. What value does this represent?",a:["Environmental responsibility and respect for ancestral knowledge.","Economic competition between communities.","Dependence on modern technology."],correct:0,right:"Very good! The Rice Terraces show how important environmental responsibility and respect for ancestral knowledge are in preserving our cultural heritage.",wrong:"That's incorrect! The Ifugao Rice Terraces demonstrate the importance of living in harmony with nature and valuing the knowledge passed down by our ancestors."},
+{region:"Region I (Ilocos Region)",q:"Why is preserving historical sites such as Intramuros important to Filipino identity?",a:["Encourage the use of imported textiles.","Discourage traditional weaving practices.","Support local weavers and promote their craftsmanship."],correct:2,right:"That's right! Supporting local weavers helps preserve traditional craftsmanship and ensures that future generations can continue this cultural practice.",wrong:"Not quite! Traditional weaving should be supported because it represents the creativity, skills, and identity of the Ilocano community."},
+{region:"Region II (Cagayan Valley)",q:"The Ivatan people build stone houses to withstand harsh weather conditions. What can Filipinos learn from this?",a:["Traditional architecture should be abandoned.","Cultural knowledge can provide practical solutions to environmental challenges.","All communities should follow the same architectural designs."],correct:1,right:"Correct! Ivatan architecture teaches us that traditional knowledge can provide practical solutions to environmental challenges.",wrong:"That's incorrect! The Ivatan stone houses show how our ancestors developed architectural practices suited to their environment."},
+{region:"Region III (Central Luzon)",q:"Why should the Giant Lantern Festival in Pampanga be preserved?",a:["It represents Filipino creativity, community identity, and craftsmanship.","It provides entertainment exclusively for tourists.","It encourages communities to compete for popularity."],correct:0,right:"Excellent! The Giant Lantern Festival represents Filipino creativity, community identity, and the craftsmanship of local artisans.",wrong:"Not quite! The festival is not just about entertainment. It also showcases the artistic skills and cultural identity of the Kapampangan community."},
+{region:"Region IV-A (Calabarzon)",q:"Paete, Laguna is known for woodcarving. What is the most ethical way to appreciate this tradition?",a:["Copy traditional designs without recognizing their creators.","Purchase only mass-produced imitations.","Recognize local artisans and support their traditional craftsmanship."],correct:2,right:"Correct! Recognizing and supporting local artisans demonstrates respect for their craftsmanship and helps sustain traditional industries.",wrong:"That's incorrect! Genuine cultural appreciation means recognizing the people behind traditional crafts and giving importance to their work."},
+{region:"Region IV-B (MIMAROPA)",q:"Why is preserving the cultural traditions of the Mangyan communities important?",a:["To make all indigenous communities adopt similar traditions.","To protect their cultural identity, language, and ancestral knowledge.","To prevent cultural development and modernization."],correct:1,right:"Very good! Preserving Mangyan traditions helps protect their cultural identity, language, and ancestral knowledge.",wrong:"Not quite! Indigenous traditions are important because they represent the identity and history of their communities. They deserve respect and preservation."},
+{region:"Region V (Bicol Region)",q:"How can communities help preserve traditional Bicolano food such as Laing?",a:["Pass traditional recipes and cooking knowledge to younger generations.","Replace traditional dishes with foreign cuisine.","Discourage the use of locally available ingredients."],correct:0,right:"That's right! Passing traditional recipes to younger generations helps preserve Filipino food culture and culinary heritage.",wrong:"That's incorrect! Traditional dishes are part of our cultural identity, and sharing recipes helps keep these traditions alive."},
+{region:"Region VI (Western Visayas)",q:"Miagao Church is recognized as a UNESCO World Heritage Site. What responsibility comes with preserving such a landmark?",a:["Restrict historical information to researchers.","Prioritize commercial development over preservation.","Protect its historical significance for future generations."],correct:2,right:"Correct! Protecting historical landmarks allows future generations to appreciate and learn from our country's historical and cultural heritage.",wrong:"Not quite! Historical landmarks should be protected because they carry stories and experiences that contribute to our collective identity."},
+{region:"Negros Island Region (NIR)",q:"How does celebrating the MassKara Festival contribute to cultural identity?",a:["It removes differences between communities.","It strengthens community participation and celebrates local culture.","It discourages the continuation of local traditions."],correct:1,right:"Very good! The MassKara Festival strengthens community participation and celebrates the culture and identity of Negros.",wrong:"That's incorrect! Festivals are not only celebrations. They also strengthen community connections and help preserve local traditions."},
+{region:"Region VII (Central Visayas)",q:"Cebu is known for its cultural and religious heritage. Why should historical religious landmarks be protected?",a:["They represent historical experiences and cultural traditions.","They should only be valued for their architectural appearance.","They have no relevance to modern Filipino society."],correct:0,right:"Correct! Historical religious landmarks represent important parts of our history, traditions, and cultural experiences.",wrong:"Not quite! These landmarks are valuable not only because of their appearance but also because of the historical and cultural stories they represent."},
+{region:"Region VIII (Eastern Visayas)",q:"The Balangiga Bells are important historical objects. What is the best way to preserve their significance?",a:["Treat them only as decorative objects.","Ignore the historical events associated with them.","Educate future generations about their historical importance."],correct:2,right:"Excellent! Educating future generations about historical objects helps preserve our collective memory and understanding of the past.",wrong:"That's incorrect! The Balangiga Bells are more than historical objects. They represent significant events in Philippine history that deserve to be remembered."},
+{region:"Region IX (Zamboanga Peninsula)",q:"Yakan weaving is known for its colorful patterns. How can Filipinos demonstrate genuine cultural appreciation?",a:["Use traditional patterns without acknowledging their origins.","Respect the Yakan community and recognize its cultural contributions.","Consider traditional textiles less valuable than modern products."],correct:1,right:"That's right! Respecting the Yakan community and recognizing its craftsmanship demonstrate genuine appreciation for cultural diversity.",wrong:"Not quite! Cultural appreciation means respecting the origins of traditional designs and acknowledging the communities that created them."},
+{region:"Region X (Northern Mindanao)",q:"Why is it important to document the traditions of indigenous communities?",a:["To preserve their knowledge and pass it on to future generations with their consent.","To change their traditions according to popular trends.","To make their cultural practices available without restrictions."],correct:0,right:"Correct! Documenting indigenous traditions with proper consent helps preserve cultural knowledge while respecting the rights of the community.",wrong:"That's incorrect! Preserving cultural traditions requires respect, consent, and proper recognition of the communities involved."},
+{region:"Region XI (Davao Region)",q:"The Kadayawan Festival celebrates the cultural diversity of Davao's indigenous communities. What should participants practice?",a:["Treat cultural performances as ordinary entertainment.","Assume all indigenous groups share identical traditions.","Respect the different cultural identities and traditions being celebrated."],correct:2,right:"Very good! Respecting different cultural identities helps promote understanding, inclusivity, and appreciation of Filipino diversity.",wrong:"Not quite! Kadayawan celebrates cultural diversity, so it's important to understand and respect the different traditions represented."},
+{region:"Region XII (SOCCSKSARGEN)",q:"The T'boli community is known for T'nalak weaving. Why should this traditional craft be protected?",a:["To replace other traditional textiles.","To preserve indigenous creativity, identity, and ancestral knowledge.","To prevent younger generations from adopting new skills."],correct:1,right:"Correct! T'nalak weaving represents T'boli creativity, identity, and ancestral knowledge that deserve to be preserved.",wrong:"That's incorrect! Traditional crafts carry cultural meanings and knowledge that connect communities to their ancestors."},
+{region:"Region XIII (Caraga)",q:"Why is preserving the Balangay heritage of Butuan important?",a:["It provides insight into the maritime history and early communities of the Philippines.","It demonstrates that traditional transportation has no historical value.","It encourages Filipinos to disregard their ancestors' achievements."],correct:0,right:"Excellent! The Balangay heritage of Butuan gives us valuable insights into the maritime history and achievements of early Filipino communities.",wrong:"Not quite! The Balangay represents the maritime skills and history of our ancestors, reminding us of the achievements of early Filipino communities."},
+{region:"Bangsamoro Autonomous Region (BARMM)",q:"The Darangen is an important epic of the Maranao people. What does protecting this literary heritage demonstrate?",a:["The rejection of cultural diversity.","The replacement of indigenous literature.","Respect for cultural identity and the preservation of traditional knowledge."],correct:2,right:"Correct! Preserving the Darangen demonstrates respect for Maranao cultural identity and helps pass traditional knowledge to future generations.",wrong:"That's incorrect! The Darangen is an important part of Maranao literary heritage. Preserving it helps protect their identity, stories, and traditions."}
+];
+
+let current=0, score=0, locked=false, audioCtx=null;
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active')}
+function playTone(correct){
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext;
+    if(!Ctx)return;
+    audioCtx=audioCtx||new Ctx();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    const now=audioCtx.currentTime, osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+    osc.connect(gain);gain.connect(audioCtx.destination);
+    osc.type='sine';osc.frequency.setValueAtTime(correct?660:220,now);
+    if(correct)osc.frequency.setValueAtTime(880,now+.12);
+    gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.18,now+.02);
+    gain.gain.exponentialRampToValueAtTime(.0001,now+(correct?.28:.38));
+    osc.start(now);osc.stop(now+(correct?.3:.4));
+  }catch(e){}
+}
+function start(){current=0;score=0;show('quiz');render()}
+function render(){
+  locked=false;const item=quizData[current];
+  $('region').textContent=item.region;$('question').textContent=item.q;
+  $('counter').textContent=`Question ${current+1} of ${quizData.length}`;
+  $('progress').style.width=`${current/quizData.length*100}%`;
+  $('feedback').style.display='none';$('feedback').className='feedback';$('nextBtn').disabled=true;
+  $('nextBtn').textContent=current===quizData.length-1?'SEE RESULTS →':'NEXT →';
+  const letters=['A','B','C'];$('answers').innerHTML='';
+  item.a.forEach((answer,i)=>{
+    const btn=document.createElement('button');btn.className='answer';
+    btn.textContent=`${letters[i]}. ${answer}`;btn.type='button';
+    btn.addEventListener('click',()=>choose(i));$('answers').appendChild(btn);
+  });
+}
+function choose(index){
+  if(locked)return;locked=true;
+  const item=quizData[current],correct=index===item.correct;
+  if(correct)score++;
+  [...$('answers').children].forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===item.correct)btn.classList.add('correct');
+    else if(i===index)btn.classList.add('wrong');
+  });
+  const fb=$('feedback');fb.textContent=correct?item.right:item.wrong;
+  fb.className=correct?'feedback':'feedback wrong';fb.style.display='block';
+  playTone(correct);$('nextBtn').disabled=false;
+  $('progress').style.width=`${(current+1)/quizData.length*100}%`;
+}
+function next(){
+  if(!locked)return;
+  if(current<quizData.length-1){current++;render()}else finish();
+}
+function finish(){
+  show('result');$('score').textContent=`${score} / ${quizData.length}`;
+  if(score===quizData.length){
+    $('resultTitle').textContent='Congratulations!';
+    $('resultMessage').textContent='Perfect score! You answered all questions correctly. Excellent work!';
+  }else{
+    $('resultTitle').textContent='Good effort!';
+    $('resultMessage').textContent='You did not get all the answers correct. Review the feedback and try again!';
+  }
+  $('resultDetail').textContent=`You answered ${score} correctly and ${quizData.length-score} incorrectly.`;
+}
+$('startBtn').addEventListener('click',start);
+$('nextBtn').addEventListener('click',next);
+$('restartBtn').addEventListener('click',start);
+</script>
+</body>
+</html>
